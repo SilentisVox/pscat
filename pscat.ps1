@@ -287,11 +287,11 @@ function pscat
         [String] $Address,
         [String] $Port,
         [String] $Execute,
-        [Switch] $VerboseMode
+        [Switch] $VerboseMode,
         [Switch] $Help
     )
 
-    $Help                               = @"
+    $HelpDialogue                       = @"
 pscat - PowerShell Network Concatenation.
 Github Repository: https://github.com/SilentisVox/pscat
 
@@ -320,7 +320,7 @@ Examples:
 
     if ($Help)
     {
-        return $Help
+        return $HelpDialogue
     }
 
     if (-not ($Connect -xor $Listen))
