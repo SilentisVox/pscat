@@ -1,3 +1,11 @@
+class stream
+{
+    [String]       $Name
+    [IO.Stream]    $IOStream
+    [Byte[]]       $Buffer
+    [IAsyncResult] $AsyncResult
+}
+
 class pscat
 {
     [String]         $Address
