@@ -326,12 +326,12 @@ function pscat
 
     if ($Connect)
     {
-        $RESULT                         = $TcpClient.Start_Connect()
+        $RESULT                         = $TcpClient.Start_Connect($VerboseMode)
     }
 
     if ($Listen)
     {
-        $RESULT                         = $TcpClient.Start_Listen()
+        $RESULT                         = $TcpClient.Start_Listen($VerboseMode)
     }
 
     if (-not $RESULT)
