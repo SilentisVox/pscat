@@ -15,7 +15,7 @@ class pscat
     [PSCustomObject] $Objects
     [Object[]]       $Streams
 
-    powercat ([String] $Address, [String] $Port)
+    pscat ([String] $Address, [String] $Port)
     {
         $this.Address                   = $Address
         $this.Port                      = $Port
@@ -240,5 +240,110 @@ class pscat
         {
             $this.Objects.Process.Kill()
         }
+    }
+}
+
+function pscat
+{
+    [CmdletBinding()]
+    param(
+        [Switch] $Connect,
+        [Switch] $Listen,
+        [String] $Address,
+        [String] $Port,
+        [String] $Execute,
+        [Switch] $VerboseMode
+    )
+
+    if (-not ($Connect -xor $Listen))
+    {
+        if ($VerboseMode)
+        {
+            Write-Host "please specify connect/listen only."
+        }
+        return
+    }
+
+    if ($Connect -and ((-not $Address) -or (-not $Port)))
+    {
+        if ($VerboseMode)
+        {
+            Write-Host "please specify full address []:[]."
+        }
+        return
+    }
+
+    if ($Listen -and -not $Address)
+    {
+        $Address                        = [Net.IPAddress]::Any
+    }
+
+    if ($Listen -and (-not $Port))
+    {
+        if ($VerboseMode)
+        {
+            Write-Host "please specify full address []:[]."
+        }
+        return
+    }
+
+    $TcpClient                          = [pscat]::new($Address, $Port)
+
+    if ($Connect)
+    {
+        $RESULT                         = $TcpClient.Start_Connect()
+    }
+
+    if ($Listen)
+    {
+        $RESULT                         = $TcpClient.Start_Listen()
+    }
+
+    if (-not $RESULT)
+    {
+        if ($VerboseMode)
+        {
+            Write-Host "failed to connect to host."
+        }
+        return
+    }
+
+    if ($Execute)
+    {
+        $RESULT                         = $TcpClient.Start_DiagnosticsProcess($Execute)
+
+        if (-not $RESULT)
+        {
+            if ($VerboseMode)
+            {
+                Write-Host "failed to start process."
+            }
+            return
+        }
+    }
+
+    $TcpClient.Setup_Streams()
+
+    $Action                             = @{
+        $true                           = {
+            $TcpClient.Update_DiagnosticsProcess()
+        }
+        $false                          = {
+            $TcpClient.Update_TcpConnection()
+        }
+    }
+
+    $Mode                               = $Action[[Bool] $Execute]
+
+    try
+    {
+        while ($true)
+        {
+            & $Mode
+        }
+    }
+    finally
+    {
+        $TcpClient.Close_Streams()
     }
 }
