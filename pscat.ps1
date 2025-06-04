@@ -66,4 +66,24 @@ class pscat
 
         return $true
     }
+
+    [Bool] Start_DiagnosticsProcess([String] $ProcessName)
+    {
+        $Info                           = [Diagnostics.ProcessStartInfo]::new()
+        $Info.FileName                  = $ProcessName
+        $Info.UseShellExecute           = $false
+        $Info.RedirectStandardInput     = $true
+        $Info.RedirectStandardOutput    = $true
+        $Info.RedirectStandardError     = $true
+        $Process                        = [Diagnostics.Process]::Start($Info)
+
+        if (-not $Process)
+        {
+            return $false
+        }
+
+        $this.Objects.Process           = $Process
+
+        return $true
+    }
 }
