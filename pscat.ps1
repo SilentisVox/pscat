@@ -94,4 +94,15 @@ class pscat
 
         return $ReadingBuffer, $ReadingOperation
     }
+
+    [Stream] Make_Stream([String] $Name, [IO.Stream] $IOStream, [Byte[]] $Buffer, [IAsyncResult] $AsyncResult)
+    {
+        $Stream                         = [Stream]::new()
+        $Stream.Name                    = $Name
+        $Stream.IOStream                = $IOStream
+        $Stream.Buffer                  = $Buffer
+        $Stream.AsyncResult             = $AsyncResult
+
+        return $Stream
+    }
 }
