@@ -27,3 +27,7 @@ pscat -Listen -Port 4444 -Execute cmd.exe
 # Help
 pscat -Help # <- Add
 ```
+
+## **Brief Explanation**
+
+![pscat](assets/pscat.jpg)
