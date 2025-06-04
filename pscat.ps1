@@ -208,4 +208,19 @@ class pscat
             [Console]::Write($KeyPressed.KeyChar)
         }
     }
+
+    [Void] Update_TcpConnection()
+    {
+        $Data                           = $this.Process_Streams(0)
+
+        if ($Data)
+        {
+            [Console]::Write($Data)
+        }
+
+        if ([Console]::KeyAvailable)
+        {
+            $this.Update_Console()
+        }
+    }
 }
