@@ -105,4 +105,28 @@ class pscat
 
         return $Stream
     }
+
+    [Void] Setup_Streams()
+    {
+        if ($this.Objects.TcpClient)
+        {
+            $IOStream                   = $this.Objects.TcpClient.GetStream()
+            $ReadBuffer, $ReadOp        = $this.Start_AsyncRead($IOStream)
+
+            $this.Streams              += $this.Make_Stream("TcpStream", $IOStream, $ReadBuffer, $ReadOp)
+        }
+
+        if ($this.Objects.Process)
+        {
+            $IOStream                   = $this.Objects.Process.StandardOutput.BaseStream
+            $ReadBuffer, $ReadOp        = $this.Start_AsyncRead($IOStream)
+
+            $this.Streams              += $this.Make_Stream("StdOutStream", $IOStream, $ReadBuffer, $ReadOp)
+
+            $IOStream                   = $this.Objects.Process.StandardError.BaseStream
+            $ReadBuffer, $ReadOp        = $this.Start_AsyncRead($IOStream)
+
+            $this.Streams              += $this.Make_Stream("StdErrStream", $IOStream, $ReadBuffer, $ReadOp)
+        }
+    }
 }
