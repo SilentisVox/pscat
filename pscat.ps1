@@ -86,4 +86,12 @@ class pscat
 
         return $true
     }
+
+    [Object[]] Start_AsyncRead([IO.Stream] $Stream)
+    {
+        $ReadingBuffer                  = [Byte[]]::new(65535)
+        $ReadingOperation               = $Stream.BeginRead($ReadingBuffer, 0, $ReadingBuffer.Length, $null, $null)
+
+        return $ReadingBuffer, $ReadingOperation
+    }
 }
