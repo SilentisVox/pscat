@@ -52,9 +52,13 @@ class pscat
         $this.Streams                   = @()
     }
 
-    [Bool] Start_Connect()
+    [Bool] Start_Connect([Bool] $Verbosity = $false)
     {
-        Write-Verbose "connecting [$($this.Address)] $($this.Port) ..."
+        if ($Verbosity)
+        {
+           Write-Host "connecting [$($this.Address)] $($this.Port) ..."
+        }
+
         $TcpClient                      = [Net.Sockets.TcpClient]::new($this.Address, $this.Port)
 
         if (-not $TcpClient)
@@ -67,9 +71,13 @@ class pscat
         return $true
     }
 
-    [Bool] Start_Listen()
+    [Bool] Start_Listen([Bool] $Verbosity = $false)
     {
-        Write-Verbose "listening on [$($this.Address)] $($this.Port) ..."
+        if ($Verbosity)
+        {
+            Write-Host "listening on [$($this.Address)] $($this.Port) ..."
+        }
+        
         $TcpListener                    = [Net.Sockets.TcpListener]::new($this.Address, $this.Port)
         $TcpListener.Start()
         $TcpClient                      = $TcpListener.AcceptTcpClient()
@@ -78,8 +86,11 @@ class pscat
         $RemoteConnectionAddress        = $TcpClient.Client.RemoteEndPoint.Address
         $RemoteConnectionPort           = $TcpClient.Client.RemoteEndPoint.Port
 
-        Write-Verbose "connect to [$LocalConnectionAddress] from [$RemoteConnectionAddress] $RemoteConnectionPort"
-
+        if ($Verbosity)
+        {
+            Write-Host "connect to [$LocalConnectionAddress] from [$RemoteConnectionAddress] $RemoteConnectionPort"
+        }
+        
         if (-not $TcpClient)
         {
             return $false
