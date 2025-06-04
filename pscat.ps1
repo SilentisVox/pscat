@@ -177,4 +177,35 @@ class pscat
             }
         }
     }
+
+    [Void] Update_Console()
+    {
+        $KeyPressed                     = [Console]::ReadKey($true)
+        $CursorPosition                 = [Console]::CursorLeft
+
+        if ($KeyPressed.Key -eq "Enter")
+        {
+            $this.Command              += "`n"
+            $RawCommand                 = $this.Encoding.GetBytes($this.Command)
+            $this.Streams[0].IOStream.Write($RawCommand, 0, $RawCommand.Length)
+            $this.Streams[0].IOStream.Flush()
+            [Console]::WriteLine()
+            $this.Command               = ""
+        }
+        elseif ($KeyPressed.Key -eq "Backspace") 
+        {
+            if ($this.Command.Length -gt 0) 
+            {
+                $this.Command           = $this.Command.Substring(0, $this.Command.Length - 1)
+                [Console]::SetCursorPosition([Console]::CursorLeft - 1, [Console]::CursorTop)
+                [Console]::Write(" ")
+                [Console]::SetCursorPosition([Console]::CursorLeft - 1, [Console]::CursorTop)
+            }
+        }
+        else
+        {
+            $this.Command              += $KeyPressed.KeyChar
+            [Console]::Write($KeyPressed.KeyChar)
+        }
+    }
 }
