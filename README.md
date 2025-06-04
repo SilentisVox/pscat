@@ -25,7 +25,7 @@ pscat -Connect -Address 127.0.0.1 -Port 4444
 pscat -Listen -Port 4444 -Execute cmd.exe
 
 # Help
-pscat -Help # <- Add
+pscat -Help
 ```
 
 ## **Brief Explanation**
