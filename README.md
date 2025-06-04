@@ -31,3 +31,35 @@ pscat -Help # <- Add
 ## **Brief Explanation**
 
 ![pscat](assets/pscat.jpg)
+
+### **Asynchronous Stream Reading**
+
+The .NET framework offers an asynchronous reading operation `BeginRead()`, which immediately returns an `IAsyncResult`, where code can keep running as the operation continues to completion.
+
+And with a simple structure, we should be able to handle and read streams very easily. This include a process' Standard Input/Output/Error base stream.
+
+###### Stream Reading Operation
+
+```powershell
+# Our IO Stream
+[IO.Stream]    $Stream
+
+# Our byte array
+[Byte[]]       $Buffer
+
+# Our Reading operation
+[IAsyncResult] $Stream.BeginRead($Buffer, 0, $Buffer.Length, $null, $null)
+```
+
+###### Stream Structure
+
+```powershell
+# A structure to organize streams, their buffers and operations
+class stream
+{
+    [String]       $Name
+    [IO.Stream]    $IOStream
+    [Byte[]]       $Buffer
+    [IAsyncResult] $AsyncResult
+}
+```
