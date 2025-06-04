@@ -129,4 +129,27 @@ class pscat
             $this.Streams              += $this.Make_Stream("StdErrStream", $IOStream, $ReadBuffer, $ReadOp)
         }
     }
+
+    [String] Process_Streams([Int] $StreamIndex)
+    {
+        $Stream                         = $this.Streams[$StreamIndex]
+        $Data                           = $null
+
+        if ($Stream.AsyncResult.IsCompleted)
+        {
+            $Length                     = $Stream.IOStream.EndRead($Stream.AsyncResult)
+
+            if ($Length -eq 0)
+            {
+                return $null
+            }
+
+            $Data                       = $this.Encoding.GetString($Stream.Buffer, 0, $Length)
+            $ReadBuffer, $ReadOp        = $this.Start_AsyncRead($Stream.IOStream)
+            $Stream                     = $this.Make_Stream($Stream.Name, $Stream.IOStream, $ReadBuffer, $ReadOp)
+            $this.Streams[$StreamIndex] = $Stream
+        }
+
+        return $Data
+    }
 }
