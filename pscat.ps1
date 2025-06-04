@@ -152,4 +152,29 @@ class pscat
 
         return $Data
     }
+
+    [Void] Update_DiagnosticsProcess()
+    {
+        foreach ($Stream in 0..2)
+        {
+            $Data                       = $this.Process_Streams($Stream)
+            $Bytes                      = $this.Encoding.GetBytes($Data)
+
+            if ($Data -eq $null)
+            {
+                continue
+            }
+
+            if ($Stream -eq 0)
+            {
+                $this.Objects.Process.StandardInput.BaseStream.Write($Bytes, 0, $Bytes.Length)
+                $this.Objects.Process.StandardInput.BaseStream.Flush()
+            }
+            else
+            {
+                $this.Streams[0].IOStream.Write($Bytes, 0, $Bytes.Length)
+                $this.Streams[0].IOStream.Flush()
+            }
+        }
+    }
 }
