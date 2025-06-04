@@ -288,7 +288,40 @@ function pscat
         [String] $Port,
         [String] $Execute,
         [Switch] $VerboseMode
+        [Switch] $Help
     )
+
+    $Help                               = @"
+pscat - PowerShell Network Concatenation.
+Github Repository: https://github.com/SilentisVox/pscat
+
+This script implements the features of netcat in a powershell script.
+
+Usage: pscat [-Connect -c | -Listen -l] [-Address -a <address>] [-Port -p <port>] [options]
+
+  -c              Client Mode. Provide the IP and port of the system you wish to connect to.
+            
+  -l              Listen Mode. Start a listener on the port specified by -p.
+
+  -a              Address. The address to connect to, or the to listen on
+
+  -p  <port>      Port. The port to connect to, or to listen on.
+  
+  -e  <proc>      Execute. Specify the name of the process to start.
+
+Examples:
+
+  Listen on port 8000 and print the output to the console.
+      pscat -l -p 8000
+  
+  Connect to 10.1.1.1 port 443, send a shell, and enable verbosity.
+      pscat -c 10.1.1.1 443 -e cmd -verbosemode
+"@
+
+    if ($Help)
+    {
+        return $Help
+    }
 
     if (-not ($Connect -xor $Listen))
     {
