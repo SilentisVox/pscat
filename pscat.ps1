@@ -223,4 +223,22 @@ class pscat
             $this.Update_Console()
         }
     }
+
+    [Void] Close_Streams()
+    {
+        foreach ($Stream in $this.Streams)
+        {
+            $Stream.IOStream.Close()
+        }
+
+        if ($this.Objects.TcpClient)
+        {
+            $this.Objects.TcpClient.Close
+        }
+
+        if ($this.Objects.Process)
+        {
+            $this.Objects.Process.Kill()
+        }
+    }
 }
