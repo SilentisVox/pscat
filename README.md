@@ -17,15 +17,23 @@ cd pscat
 ```powershell
 # Listen Mode
 pscat -Listen -Port 4444
+# or
+pscat -l -p 4444
 
 # Connect Mode
 pscat -Connect -Address 127.0.0.1 -Port 4444
+# or
+pscat -c 127.0.0.1 4444
 
 # Pipe process
 pscat -Listen -Port 4444 -Execute cmd.exe
+# or
+pscat -l -p 4444 -e cmd.exe
 
 # Help
 pscat -Help
+# or
+pscat -h
 ```
 
 ## **Brief Explanation**
