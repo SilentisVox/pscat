@@ -38,6 +38,7 @@ class pscat
     [Text.Encoding]  $Encoding
     [PSCustomObject] $Objects
     [Object[]]       $Streams
+    [Bool]           $RedirectorPresent
 
     pscat ([String] $Address, [String] $Port)
     {
@@ -50,6 +51,7 @@ class pscat
             Process                     = $null
         }
         $this.Streams                   = @()
+        $this.RedirectorPresent         = [Console]::IsInputRedirected
     }
 
     [Bool] Start_Connect([Bool] $Verbosity = $false)
@@ -151,6 +153,14 @@ class pscat
             $this.Streams              += $this.Make_Stream("TcpStream", $IOStream, $ReadBuffer, $ReadOp)
         }
 
+        if ($this.RedirectorPresent)
+        {
+            $IOStream                   = [Console]::OpenStandardInput()
+            $ReadBuffer, $ReadOp        = $this.Start_AsyncRead($IOStream)
+
+            $this.Streams              += $this.Make_Stream("StdInStream", $IOStream, $ReadBuffer, $ReadOp)
+        }
+
         if ($this.Objects.Process)
         {
             $IOStream                   = $this.Objects.Process.StandardOutput.BaseStream
@@ -244,6 +254,20 @@ class pscat
         }
     }
 
+    [Void] Update_Redirector()
+    {
+        $Data                           = $this.Process_Streams(1)
+
+        if (-not $Data)
+        {
+            return
+        }
+
+        $Bytes                          = $this.Encoding.GetBytes($Data)
+        $this.Streams[0].IOStream.Write($Bytes, 0, $Bytes.Length)
+        $this.Streams[0].IOStream.Flush()
+    }
+
     [Void] Update_TcpConnection()
     {
         $Data                           = $this.Process_Streams(0)
@@ -253,19 +277,15 @@ class pscat
             [Console]::Write($Data)
         }
 
-        $RESULT = $false
-
-        if (-not [Console]::IsInputRedirected) 
+        if ($this.RedirectorPresent)
         {
-            $RESULT = $true
+            $this.Update_Redirector()
+            return
         }
-        
-        if ($RESULT)
+
+        if ([Console]::KeyAvailable) 
         {
-            if ([Console]::KeyAvailable) 
-            {
-                $this.Update_Console()
-            }
+            $this.Update_Console()
         }
     }
 
