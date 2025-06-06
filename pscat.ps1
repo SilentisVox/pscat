@@ -264,7 +264,7 @@ class pscat
         {
             if ([Console]::KeyAvailable) 
             {
-                $this.Update_Console($RESULT)
+                $this.Update_Console()
             }
         }
     }
