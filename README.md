@@ -28,10 +28,10 @@ pscat -Listen -Port 4444 -Execute cmd.exe
 pscat -Help
 
 # OR
-pscat -l -p 4444
-pscat -c 127.0.0.1 4444
-pscat -l -p 4444 -e cmd.exe
-pscat -h
+pc -l -p 4444
+pc -c 127.0.0.1 4444
+pc -l -p 4444 -e cmd.exe
+pc -h
 ```
 
 ## **Brief Explanation**
