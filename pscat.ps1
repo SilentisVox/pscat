@@ -213,18 +213,9 @@ class pscat
         }
     }
 
-    [Void] Update_Console([Bool] $ConsoleRedirect)
+    [Void] Update_Console()
     {
-        if ($ConsoleRedirect)
-        {
-            $KeyPressed                 = [Console]::ReadKey($true)
-        }
-        else
-        {
-            $Key                        = [Console]::In.Read()
-            $KeyPressed                 = [ConsoleKeyInfo]::new($Key, $Key, 0, 0, 0)
-        }
-        
+        $KeyPressed                     = [Console]::ReadKey($true)
         $CursorPosition                 = [Console]::CursorLeft
 
         if ($KeyPressed.Key -eq "Enter")
@@ -272,14 +263,6 @@ class pscat
         if ($RESULT)
         {
             if ([Console]::KeyAvailable) 
-            {
-                $this.Update_Console($RESULT)
-            }
-        }
-        
-        if (-not $RESULT)
-        {
-            if ([Console]::In.Peek() -ne -1) 
             {
                 $this.Update_Console($RESULT)
             }
