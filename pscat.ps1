@@ -262,11 +262,6 @@ class pscat
             [Console]::Write($Data)
         }
 
-        if ([Console]::KeyAvailable)
-        {
-            $this.Update_Console()
-        }
-
         $RESULT = $false
 
         if (-not [Console]::IsInputRedirected) 
