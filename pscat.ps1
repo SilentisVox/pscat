@@ -445,3 +445,5 @@ Examples:
         $TcpClient.Close_Streams()
     }
 }
+
+Set-Alias pc pscat
