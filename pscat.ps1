@@ -1,27 +1,3 @@
-<#
-.SYNOPSIS
-    This is a simple proof-of-concept (POC) for a network concatenation tool usuing PowerShell and the .NET framework.
-    
-    There’s nothing novel here — this method is well-known and widely used. Luckily, it’s and amazing network 
-    administration tool that is not detectable by modern EDRs and serves primarily as an educational demonstration.
-    
-    Notes:
-        - I tested this POC on x64 Win11.
-
-.DESCRIPTION
-    Author: Silentis Vox (@SilentisVox)
-    License: BSD 3-Clause
-    Required Dependencies: None
-    Optional Dependencies: None
-
-.EXAMPLE
-    # Create a local thread that executes shellcode.
-    # x64 Win10 RS4
-    PS C:\> pscat -l -p 4444 -verbosemode
-    listening on [0.0.0.0] 4444 ...
-    connect to [127.0.0.1] from [127.0.0.1] 65432
-#>
-
 class stream
 {
     [String]       $Name
@@ -104,10 +80,16 @@ class pscat
         return $true
     }
 
-    [Bool] Start_DiagnosticsProcess([String] $ProcessName)
+    [Bool] Start_DiagnosticsProcess([String] $ProcessName, [String] $Arguments = $null)
     {
         $Info                           = [Diagnostics.ProcessStartInfo]::new()
         $Info.FileName                  = $ProcessName
+
+        if ($Arguments)
+        {
+            $Info.Arguments             = $Arguments
+        }
+
         $Info.UseShellExecute           = $false
         $Info.RedirectStandardInput     = $true
         $Info.RedirectStandardOutput    = $true
@@ -310,6 +292,30 @@ class pscat
 
 function pscat
 {
+<#
+.SYNOPSIS
+    This is a simple proof-of-concept (POC) for a network concatenation tool usuing PowerShell and the .NET framework.
+    
+    There’s nothing novel here — this method is well-known and widely used. Luckily, it’s and amazing network 
+    administration tool that is not detectable by modern EDRs and serves primarily as an educational demonstration.
+    
+    Notes:
+        - I tested this POC on x64 Win11.
+
+.DESCRIPTION
+    Author: Silentis Vox (@SilentisVox)
+    License: BSD 3-Clause
+    Required Dependencies: None
+    Optional Dependencies: None
+
+.EXAMPLE
+    # Create a local thread that executes shellcode.
+    # x64 Win10 RS4
+    PS C:\> pscat -l -p 4444 -verbosemode
+    listening on [0.0.0.0] 4444 ...
+    connect to [127.0.0.1] from [127.0.0.1] 65432
+#>
+
     [CmdletBinding()]
     param(
         [Switch] $Connect,
@@ -408,7 +414,15 @@ Examples:
 
     if ($Execute)
     {
-        $RESULT                         = $TcpClient.Start_DiagnosticsProcess($Execute)
+        $CommandLine                    = @($Execute -split '\s+', 2)
+        $Executable                     = $CommandLine[0]
+
+        if ($CommandLine.Count -gt 1)
+        {
+            $Arguments                 = $CommandLine[1]
+        }
+
+        $RESULT                         = $TcpClient.Start_DiagnosticsProcess($Executable, $Arguments)
 
         if (-not $RESULT)
         {
