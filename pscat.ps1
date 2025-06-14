@@ -84,7 +84,7 @@ class pscat
     {
         $Info                           = [Diagnostics.ProcessStartInfo]::new()
         $Info.FileName                  = $ProcessName
-        $Info.Arguments             = $Arguments
+        $Info.Arguments                 = $Arguments
         $Info.UseShellExecute           = $false
         $Info.RedirectStandardInput     = $true
         $Info.RedirectStandardOutput    = $true
