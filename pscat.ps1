@@ -163,6 +163,16 @@ class pscat
         }
     }
 
+    [Bool] Send_InitialData([String] $InitialData)
+    {
+        $InitialData                   += "`n"
+        $RawData                        = $this.Encoding.GetBytes($InitialData)
+        $this.Streams[0].IOStream.Write($RawData, 0, $RawData.Length)
+        $this.Streams[0].IOStream.Flush()
+
+        return $true
+    }
+
     [String] Process_Streams([Int] $StreamIndex)
     {
         $Stream                         = $this.Streams[$StreamIndex]
@@ -330,7 +340,10 @@ function pscat
         [String] $Port,
         [String] $Execute,
         [Switch] $VerboseMode,
-        [Switch] $Help
+        [Switch] $Help,
+
+        [Parameter(ValueFromPipeline)]
+        [String] $Data
     )
 
     $HelpDialogue                       = @"
@@ -441,6 +454,11 @@ Examples:
     }
 
     $TcpClient.Setup_Streams()
+
+    if ($Data)
+    {
+        $RESULT                         = $TcpClient.Send_InitialData($Data)
+    }
 
     $Action                             = @{
         $true                           = {
