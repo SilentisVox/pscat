@@ -80,6 +80,17 @@ class pscat
         return $true
     }
 
+    [Bool] Add_TcpClient([Net.Sockets.TcpClient] $TcpClient)
+    {
+        if ($TcpClient.Connected)
+        {
+            $this.Objects.TcpClient     = $TcpClient
+            return $true
+        }
+
+        return $false
+    }
+
     [Bool] Start_DiagnosticsProcess([String] $ProcessName, [String] $Arguments)
     {
         $Info                           = [Diagnostics.ProcessStartInfo]::new()
