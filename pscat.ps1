@@ -334,12 +334,31 @@ function pscat
 
     [CmdletBinding()]
     param(
+        [Parameter(ParameterSetName = 'TcpConnection')]
         [Switch] $Connect,
+
+        [Parameter(ParameterSetName = 'TcpConnection')]
         [Switch] $Listen,
+
+        [Parameter(ParameterSetName = 'TcpConnection', Position = 0)]
         [String] $Address,
+
+        [Parameter(ParameterSetName = 'TcpConnection', Position = 1)]
         [String] $Port,
+
+        [Parameter(ParameterSetName = 'Utility')]
+        [Switch] $UtilizeGuestClient,
+
+        [Parameter(ParameterSetName = 'Utility', Position = 0)]
+        [Net.Sockets.TcpClient] $GuestClient,
+
+        [Parameter()]
         [String] $Execute,
+
+        [Parameter()]
         [Switch] $VerboseMode,
+
+        [Parameter()]
         [Switch] $Help,
 
         [Parameter(ValueFromPipeline)]
@@ -378,11 +397,11 @@ Examples:
         return $HelpDialogue
     }
 
-    if (-not ($Connect -xor $Listen))
+    if ((-not $Connect) -and (-not  $Listen) -and (-not $UtilizeGuestClient))
     {
         if ($VerboseMode)
         {
-            Write-Host "please specify connect/listen only."
+            Write-Host "please specify connect/listen/utilize."
         }
         return
     }
@@ -410,7 +429,24 @@ Examples:
         return
     }
 
-    $TcpClient                          = [pscat]::new($Address, $Port)
+    if ($UtilizeGuestClient -and (-not $GuestClient))
+    {
+        if ($VerboseMode)
+        {
+            Write-Host "please specify client."
+        }
+        return
+    }
+
+    if ($Connect -or $Listen)
+    {
+        $TcpClient                      = [pscat]::new($Address, $Port)
+    }
+    
+    if ($UtilizeGuestClient)
+    {
+        $TcpClient                      = [pscat]::new($null, $null)
+    }
 
     if ($Connect)
     {
@@ -420,6 +456,11 @@ Examples:
     if ($Listen)
     {
         $RESULT                         = $TcpClient.Start_Listen($VerboseMode)
+    }
+
+    if ($UtilizeGuestClient)
+    {
+        $RESULT                         = $TcpClient.Add_TcpClient($GuestClient)
     }
 
     if (-not $RESULT)
