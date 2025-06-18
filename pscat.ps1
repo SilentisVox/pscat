@@ -21,7 +21,7 @@ class pscat
         $this.Address                   = $Address
         $this.Port                      = $Port
         $this.Command                   = ""
-        $this.Encoding                  = [Text.Encoding]::ASCII
+        $this.Encoding                  = [Text.Encoding]::UTF8
         $this.Objects                   = [PSCustomObject] @{
             TcpClient                   = $null
             Process                     = $null
