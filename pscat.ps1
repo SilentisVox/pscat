@@ -192,17 +192,29 @@ class pscat {
             $this.Streams[0].IOStream.Flush()
             [Console]::WriteLine()
             $this.Command               = ""
-        } elseif ($KeyPressed.Key -eq "Backspace") {
-            if ($this.Command.Length -gt 0)  {
-                $this.Command           = $this.Command.Substring(0, $this.Command.Length - 1)
-                [Console]::SetCursorPosition([Console]::CursorLeft - 1, [Console]::CursorTop)
-                [Console]::Write(" ")
-                [Console]::SetCursorPosition([Console]::CursorLeft - 1, [Console]::CursorTop)
-            }
-        } else {
-            $this.Command              += $KeyPressed.KeyChar
-            [Console]::Write($KeyPressed.KeyChar)
+            return
         }
+
+        if ($KeyPressed.Key -eq "Backspace") {
+            if ($this.Command.Length -eq 0) {
+                return
+            }
+
+            $this.Command           = $this.Command.Substring(0, $this.Command.Length - 1)
+            $NewXPosition           = [Console]::CursorLeft - 1
+            $NewYPosition           = [Console]::CursorTop
+
+            [Console]::SetCursorPosition($NewXPosition, $NewYPosition)
+            [Console]::Write(" ")
+            [Console]::SetCursorPosition($NewXPosition, $NewYPosition)
+        }
+
+        if (-not ($Character = $KeyPressed.KeyChar)) {
+                $Character              = ""
+        }
+
+        $this.Command              += $KeyPressed.KeyChar
+        [Console]::Write($KeyPressed.KeyChar)
     }
 
     [Void] Update_Redirector() {
