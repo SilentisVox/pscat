@@ -213,7 +213,7 @@ class pscat {
                 $Character              = ""
         }
 
-        $this.Command              += $KeyPressed.KeyChar
+        $this.Command              += $Character
         [Console]::Write($KeyPressed.KeyChar)
     }
 
