@@ -45,12 +45,12 @@ function pscat {
                 [Parameter(ParameterSetName = 'Utility', Position = 0, Mandatory)]
                 [Net.Sockets.TcpClient] $GuestClient,
 
-                [Parameter(ParameterSetName = 'ProcessExecution')]
+                [Parameter()]
                 [string] $Execute
 
         )
 
-        if (-not $Connect -and -not $Listen -and -not $GuestClient) {
+        if (-not ($Connect -or $Listen -or $GuestClient)) {
                 $Connect = $true
         }
 
@@ -199,7 +199,7 @@ class pscat {
                 $ProcInfo.FileName = $ProcessName
                 $ProcInfo.Arguments = $Arguments
                 $ProcInfo.UseShellExecute = $false
-                $ProcInfo.RedirectStandardInput= $true
+                $ProcInfo.RedirectStandardInput = $true
                 $ProcInfo.RedirectStandardOutput = $true
                 $ProcInfo.RedirectStandardError = $true
 
@@ -254,9 +254,7 @@ class pscat {
         # if an input is available, then capure it and do with what we need.
         # This is bare-bones.
 
-        [void] ConsoleInput() {
-                $KeyPressed = [Console]::ReadKey($true)
-
+        [void] ConsoleInput($KeyPressed) {
                 if ($KeyPressed.Key -eq "Enter") {
                         $this.Command += [char] 10
                         $EncodedCommand = [Text.Encoding]::UTF8.GetBytes($this.Command)
@@ -268,11 +266,7 @@ class pscat {
                         return
                 }
 
-                if ($KeyPressed.Key -eq "Backspace") {
-                        if ($this.Command.Length -eq 0) {
-                                return
-                        }
-
+                if ($KeyPressed.Key -eq "Backspace" -and $this.Command) {
                         $this.Command = $this.Command.Substring(0, $this.Command.Length - 1)
                         [Console]::Write("$([char] 8) $([char] 8)")
 
@@ -334,7 +328,7 @@ class pscat {
                 }
 
                 if ([Console]::KeyAvailable) {
-                        $this.ConsoleInput()
+                        $this.ConsoleInput([Console]::ReadKey($true))
                 }
         }
 
